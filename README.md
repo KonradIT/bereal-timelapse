@@ -2,7 +2,7 @@
 
 Compiles a timelapse from your BeReal memories.
 
-![](https://i.imgur.com/fltmvVE.gif)
+![](./output.gif)
 
 ## Usage:
 
