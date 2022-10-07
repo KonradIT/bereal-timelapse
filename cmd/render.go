@@ -59,6 +59,7 @@ var renderCmd = &cobra.Command{
 		fmt.Printf("Enter SMS 2FA code: ")
 		text, _ := reader.ReadString('\n')
 		code := strings.Replace(text, "\n", "", -1)
+		code = strings.Replace(code, "\r", "", -1)
 		err = b.VerifyAuthMessage(code)
 		if err != nil {
 			cui.Error(err.Error())
