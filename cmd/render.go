@@ -25,7 +25,7 @@ var renderCmd = &cobra.Command{
 	Use:   "render",
 	Short: "Render timelapse",
 	Run: func(cmd *cobra.Command, args []string) {
-		phone_number, err := cmd.Flags().GetString("phone_number")
+		phoneNumber, err := cmd.Flags().GetString("phone_number")
 		if err != nil {
 			cui.Error("Problem parsing phone_number", err)
 			os.Exit(1)
@@ -41,7 +41,7 @@ var renderCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if phone_number == "" {
+		if phoneNumber == "" {
 			cui.Error("Phone number needs to be set")
 			os.Exit(1)
 		}
@@ -50,7 +50,7 @@ var renderCmd = &cobra.Command{
 			Debug: true,
 		}
 
-		err = b.SendAuthMessage(phone_number)
+		err = b.SendAuthMessage(phoneNumber)
 		if err != nil {
 			cui.Error(err.Error())
 			os.Exit(1)
@@ -93,20 +93,26 @@ var renderCmd = &cobra.Command{
 			}
 		}
 
-		ffmpegArgs := "-y -f image2 -framerate " + fmt.Sprint(fps) + " -i output/render_%d.jpg " + output
-		ffmpegCmd := exec.Command("ffmpeg", strings.Split(ffmpegArgs, " ")...)
+		ffmpegArgs := fmt.Sprintf("-y -f image2 -framerate %d -i output/render_%%d.jpg %s", fps, output)
+		ffmpegCmd := exec.Command("ffmpeg", strings.Split(ffmpegArgs, " ")...) //nolint
 
 		stderr, _ := ffmpegCmd.StderrPipe()
-		ffmpegCmd.Start()
-
+		err = ffmpegCmd.Start()
+		if err != nil {
+			cui.Error(err.Error())
+			os.Exit(1)
+		}
 		scanner := bufio.NewScanner(stderr)
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			m := scanner.Text()
 			fmt.Println(m)
 		}
-		ffmpegCmd.Wait()
-
+		err = ffmpegCmd.Wait()
+		if err != nil {
+			cui.Error(err.Error())
+			os.Exit(1)
+		}
 	},
 }
 
@@ -116,5 +122,5 @@ func init() {
 	renderCmd.Flags().StringP("phone_number", "p", "", "Phone Number: +XXYYYYYYYYY")
 	renderCmd.Flags().IntP("fps", "f", 5, "Frames per second")
 	renderCmd.Flags().StringP("output", "o", "render.mp4", "Output filename")
-	renderCmd.MarkFlagRequired("phone_number")
+	_ = renderCmd.MarkFlagRequired("phone_number")
 }

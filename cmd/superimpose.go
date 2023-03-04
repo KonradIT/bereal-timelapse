@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	PADDING_TOP_LEFT   = 30
-	HEADSHOT_RESIZE_TO = 600
+	PaddingTopLeft   = 30
+	HeadshotResizeTo = 600
 )
 
 func Superimpose(
@@ -19,7 +19,6 @@ func Superimpose(
 	foreground string,
 	output string,
 ) error {
-
 	bgImage, err := os.Open(background)
 	if err != nil {
 		return err
@@ -41,14 +40,14 @@ func Superimpose(
 	}
 	defer fgImage.Close()
 
-	offset := image.Pt(PADDING_TOP_LEFT, PADDING_TOP_LEFT)
+	offset := image.Pt(PaddingTopLeft, PaddingTopLeft)
 	b := bg.Bounds()
 	mixedImage := image.NewRGBA(b)
 
-	newImage := resize.Resize(HEADSHOT_RESIZE_TO, 0, fg, resize.Lanczos3)
+	newImage := resize.Resize(HeadshotResizeTo, 0, fg, resize.Lanczos3)
 
-	draw.Draw(mixedImage, b, bg, image.ZP, draw.Src)
-	draw.Draw(mixedImage, newImage.Bounds().Add(offset), newImage, image.ZP, draw.Over)
+	draw.Draw(mixedImage, b, bg, image.Point{}, draw.Src)
+	draw.Draw(mixedImage, newImage.Bounds().Add(offset), newImage, image.Point{}, draw.Over)
 
 	render, err := os.Create(output)
 	if err != nil {
