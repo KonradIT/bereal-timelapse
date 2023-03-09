@@ -34,7 +34,7 @@ type BeReal struct {
 	Debug bool
 }
 
-type erroResponse struct {
+type errorResponse struct {
 	Error struct {
 		Code    int    `json:"code"`
 		Message string `json:"message"`
@@ -89,7 +89,7 @@ func request(
 	}
 
 	if resp.StatusCode != 200 {
-		var errorResp erroResponse
+		var errorResp errorResponse
 		err = json.Unmarshal(bodyText, &errorResp)
 		if err != nil {
 			return err
@@ -112,6 +112,10 @@ type sendAuthMessageRequest struct {
 	PhoneNumber string `json:"phoneNumber"`
 	IOSReceipt  string `json:"iosReceipt"`
 	IOSSecret   string `json:"iosSecret"`
+}
+
+func (b *BeReal) SetIdToken(id string) {
+	b.idToken = id
 }
 
 func (b *BeReal) SendAuthMessage(phoneNumber string) error {

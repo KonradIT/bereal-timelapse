@@ -2,12 +2,15 @@ package bereal
 
 import (
 	"fmt"
+	"image/jpeg"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/dustin/go-humanize"
+	"golang.org/x/image/webp"
 )
 
 type WriteCounter struct {
@@ -31,10 +34,10 @@ func (wc WriteCounter) PrintProgress() {
 	fmt.Printf("\rDownloading... %s complete", humanize.Bytes(wc.Total))
 }
 
-func DownloadFile(filepath string, url string) error {
+func DownloadFile(localpath string, url string) error {
 	// Create the file, but give it a tmp file extension, this means we won't overwrite a
 	// file until it's downloaded, but we'll remove the tmp extension once downloaded.
-	out, err := os.Create(filepath + ".tmp")
+	out, err := os.Create(localpath + ".tmp")
 	if err != nil {
 		return err
 	}
@@ -60,7 +63,40 @@ func DownloadFile(filepath string, url string) error {
 	// Close the file without defer so it can happen before Rename()
 	out.Close()
 
-	if err = os.Rename(filepath+".tmp", filepath); err != nil {
+	extension := filepath.Ext(url)
+	switch extension {
+	case ".webp":
+		f0, err := os.Open(localpath + ".tmp")
+		if err != nil {
+			return err
+		}
+
+		jpgImg, err := os.Create(localpath + ".tmp.c")
+		if err != nil {
+			return err
+		}
+		img0, err := webp.Decode(f0)
+		if err != nil {
+			return err
+		}
+		err = jpeg.Encode(jpgImg, img0, &jpeg.Options{
+			Quality: jpeg.DefaultQuality,
+		})
+		if err != nil {
+			return err
+		}
+		if err := f0.Close(); err != nil {
+			return err
+		}
+		if err := jpgImg.Close(); err != nil {
+			return err
+		}
+		if err := os.Rename(localpath+".tmp.c", localpath+".tmp"); err != nil {
+			return err
+		}
+	}
+
+	if err = os.Rename(localpath+".tmp", localpath); err != nil {
 		return err
 	}
 	return nil

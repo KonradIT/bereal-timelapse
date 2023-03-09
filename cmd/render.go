@@ -28,22 +28,18 @@ var renderCmd = &cobra.Command{
 		phoneNumber, err := cmd.Flags().GetString("phone_number")
 		if err != nil {
 			cui.Error("Problem parsing phone_number", err)
-			os.Exit(1)
 		}
 		fps, err := cmd.Flags().GetInt("fps")
 		if err != nil {
 			cui.Error("Problem parsing frames per second (fps)", err)
-			os.Exit(1)
 		}
 		output, err := cmd.Flags().GetString("output")
 		if err != nil {
 			cui.Error("Problem parsing output", err)
-			os.Exit(1)
 		}
 
 		if phoneNumber == "" {
 			cui.Error("Phone number needs to be set")
-			os.Exit(1)
 		}
 
 		b := bereal.BeReal{
@@ -53,7 +49,6 @@ var renderCmd = &cobra.Command{
 		err = b.SendAuthMessage(phoneNumber)
 		if err != nil {
 			cui.Error(err.Error())
-			os.Exit(1)
 		}
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Printf("Enter SMS 2FA code: ")
@@ -63,12 +58,10 @@ var renderCmd = &cobra.Command{
 		err = b.VerifyAuthMessage(code)
 		if err != nil {
 			cui.Error(err.Error())
-			os.Exit(1)
 		}
 		memories, err := b.GetMemories()
 		if err != nil {
 			cui.Error(err.Error())
-			os.Exit(1)
 		}
 
 		// make timelapse
@@ -77,19 +70,19 @@ var renderCmd = &cobra.Command{
 		for index, memory := range memories {
 			err = bereal.DownloadFile(fmt.Sprintf("output/front/memory_%d.jpg", index), memory.Secondary.URL)
 			if err != nil {
-				cui.Error(err.Error())
-				os.Exit(1)
+				cui.Info(err.Error())
+				continue
 			}
 			err = bereal.DownloadFile(fmt.Sprintf("output/back/memory_%d.jpg", index), memory.Primary.URL)
 			if err != nil {
-				cui.Error(err.Error())
-				os.Exit(1)
+				cui.Info(err.Error())
+				continue
 			}
 
 			err = Superimpose(fmt.Sprintf("output/back/memory_%d.jpg", index), fmt.Sprintf("output/front/memory_%d.jpg", index), fmt.Sprintf("output/render_%d.jpg", index))
 			if err != nil {
-				cui.Error(err.Error())
-				os.Exit(1)
+				cui.Info(err.Error())
+				continue
 			}
 		}
 
@@ -100,7 +93,6 @@ var renderCmd = &cobra.Command{
 		err = ffmpegCmd.Start()
 		if err != nil {
 			cui.Error(err.Error())
-			os.Exit(1)
 		}
 		scanner := bufio.NewScanner(stderr)
 		scanner.Split(bufio.ScanLines)
@@ -111,7 +103,6 @@ var renderCmd = &cobra.Command{
 		err = ffmpegCmd.Wait()
 		if err != nil {
 			cui.Error(err.Error())
-			os.Exit(1)
 		}
 	},
 }
